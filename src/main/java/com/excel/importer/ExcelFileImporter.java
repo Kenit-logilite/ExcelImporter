@@ -41,42 +41,106 @@ public class ExcelFileImporter implements java.io.FileFilter
         	      		
             for (File file: files){
                 System.out.println("File name is " + file.getName());
+                
+                //Create Table
+                String name = file.getName();
+                if (name.indexOf(".") > 0) {
+                    name = name.substring(0, name.lastIndexOf("."));
+                }
+                try {
 
+                    Connection con = DatabaseConnection.getCon();
+                    String sql;
+                    sql = "create table " + name + "(" + name + "_id serial primary key" + ");";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    int status = ps.executeUpdate();
+                    con.close();
+                }
+
+                //    catch (SQLException e) {
+                //        System.err.format("SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+                //    }
+                catch (SQLException e) {
+                    System.out.println("Table is Already there please Do not try to insert or overwrite");
+
+                }
+                
+                //Create Columns and Inserting Data
                 try {
                     Workbook workbook = new XSSFWorkbook(file);
                     DataFormatter dataFormatter = new DataFormatter();
                    
-                    
-                    
+                   
+                    //Column Creation getting first row from the excel file
+                    Sheet sheet = workbook.getSheetAt(0);
+                    Row row = sheet.getRow(0);
+
+                    Iterator iterator = row.cellIterator();
+                   
+                    while (iterator.hasNext()) {
+                    	 Cell cell = (Cell) iterator.next();
+                     // System.out.print(cell + "\t");
+                        
+                        try {
+
+                            // alter table kenit add name varchar(500);
+                            Connection con = DatabaseConnection.getCon();
+                            String sql = "ALTER TABLE " + name + " ADD " + "" + cell + " varchar(5000)";
+                            PreparedStatement ps = con.prepareStatement(sql);
+                            int status = ps.executeUpdate();
+                            con.close();
+                        }
+                        
+                        catch (SQLException e) 
+                        {
+                            System.out.print("Data is Already there please Check :)");
+                        }
+                    }   
+                  
+                  
                     
                     Iterator < Sheet > sheets = workbook.sheetIterator();	
                     while (sheets.hasNext()) {
                         Sheet sh = sheets.next();
+                    
+                       
                         System.out.println("Sheet name is " + sh.getSheetName());
                         System.out.println("---------");
-                        Iterator < Row > iterator = sh.iterator();
-                        while (iterator.hasNext()) {
-                            Row row = iterator.next();
-                            Iterator < Cell > cellIterator = row.iterator();
-                            while (cellIterator.hasNext()) {
-                                Cell cell = cellIterator.next();
-                                String cellValue = dataFormatter.formatCellValue(cell);
-                                //if(cell.getCellType() == CellType.STRING) {
-                                //	
-                                //}
-                                System.out.print(cellValue + "\t");
-                             
+                        Iterator < Row > iterator1 = sh.iterator();
+                        while (iterator1.hasNext()) {
+                            Row row1 = iterator1.next();
+                            Iterator < Cell > cellIterator = row1.iterator();
                  
+                            while (cellIterator.hasNext()) {
+                                Cell cell1 = cellIterator.next();
+                                String cellValue = dataFormatter.formatCellValue(cell1);
+                               // System.out.print(cellValue + "\t");
+                                try {
+
+                                    // alter table kenit add name varchar(500);
+                                    Connection con = DatabaseConnection.getCon();
+                                    String sql = "insert into "+ name +" values " + "(" + cellValue + ")" ;
+                                    PreparedStatement ps = con.prepareStatement(sql);
+                                    int status = ps.executeUpdate();
+                                    con.close();
+                                }
+                                
+                                catch (SQLException e) 
+                                {
+                                    //System.out.print("Data is Already there please Check :)");
+                                }
                             }
                             System.out.println();
                         }
                     }
+                    
                     workbook.close();
                 } 
                 catch (Exception e)
                 {
                     e.printStackTrace();
                 }
+                
             	// Database Operaation 
 //                int status =0;
 //                boolean create;
